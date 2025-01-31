@@ -66,7 +66,8 @@ void rootfyTwoCh(){
   int iPULSEfromT = 160./bin_width;
   int iPULSEtoT = 290./bin_width;
 
-  float fBase=0.;     // average baseline determined beforehand   
+  float fBase=1.;     // average baseline determined beforehand   
+  float fBaseCFD=1.;  // average baseline determined beforehand
 
 //Construction the histograms for the waveforms
   TH1F *h_WF1 = new TH1F("h_WF1","h_WF1;Time [ns]; Voltage [V]",iChannels,0,bin_width*(bins_per_record-1));
@@ -249,38 +250,33 @@ void rootfyTwoCh(){
     if(!in[iFile].is_open())  break;       
 
 
-      float att=0.4;
-      int delay=6; //2*0.5ns (cada bin son 0.5ns)
+      float att=0.3;
+      int delay=40; //2*0.5ns (cada bin son 0.5ns)
 
     //DELAY - ATT - SIGMA - MEAN D3
-// ch1   2 - 0.2 - 4.589 - 6.031 
-// ch2   2 - 0.2 - 5.495 - 2.912
-// ch3   2 - 0.2 - 5.789 - 4.284
+
+//  2, 0.3 shows bad response
+
+// ch1   8 - 0.3 - 0.8716 - 1.262
+// ch2   8 - 0.3 - 0.8897 - 1.445
+// ch3   8 - 0.3 - 0.9631 - 1.863
 //
-// ch1   4 - 0.2 - 3.723 - 5.299
-// ch2   4 - 0.2 - 4.664 - 4.506
-// ch3   4 - 0.2 - 4.844 - 5.885
-// 
-// ch1   2 - 0.3 - 4.302 - 5.636
-// ch2   2 - 0.3 - 5.192 - 2.749
-// ch3   2 - 0.3 - 5.4 - 5.364
-//
-// ch1   4 - 0.3 - 2.347 - 5.328
-// ch2   4 - 0.3 - 2.781 - 6.01
-// ch3   4 - 0.3 - 3.141 - 6.443
-//
-// ch1   2 - 0.15 - 4.841 - 5.691
-// ch2   2 - 0.15 - 5.305 - 2.271
-// ch3   2 - 0.15 - 5.78  - 3.309
-//
-// ch1   6 - 0.3 - 2.084 - 3.622
-// ch2   6 - 0.3 - 2.117 - 4.256
-// ch3   6 - 0.3 - 2.187 - 5.211
-//
-// ch1   6 - 0.4 - 1.752 - 1.817
-// ch2   6 - 0.4 - 1.703 - 2.13
-// ch3   6 - 0.4 - 1.925 - 2.994
-//
+// ch1   6 - 0.3 - 1.03 - 1.822
+// ch2   6 - 0.3 - 1.081 - 2.105  (worse with 0.2)
+// ch3   6 - 0.3 - 1.114 - 2.584
+
+//ch1    10 - 0.3 - 0.7064 - 0.8426
+//ch2    10 - 0.3 - 0.6933 - 0.9455
+//ch3    10 - 0.3 - 0.7982 - 1.269
+
+//ch1    20 - 0.3 - 0.2383 - -0.05741
+//ch2    20 - 0.3 - 0.2427 - -0.0391
+//ch3    20 - 0.3 - 0.2624 - 0.07253
+
+//ch1   40 - 0.3 - 0.1667 - -0.2613
+//ch2   40 - 0.3 - 0.1743 - -0.2757
+//ch3   40 - 0.3 - 0.1571 - -0.2486
+
 //DELAY-ATT-SIGMA-MEAN   
 //DELAY-ATT-SIGMA-MEAN    
 //DELAY-ATT-SIGMA-MEAN 
@@ -393,6 +389,7 @@ void rootfyTwoCh(){
         fBase = GetBaseLine(pfWaveForm[0], iBLfrom, iBLto);
         pPulse[0]->fBase;
         SubtractBaseLine(pfWaveForm[0], pfWaveFormBL[0], fBase );
+        SubtractBaseLine(pfCFDWaveForm[0], pfCFDWaveFormBL[0], fBase );
 //         InvertWaveForm(pfWaveFormBL[0], pfWaveFormBL[0]);
         pPulse[0]->fMaxBin = GetPeakPosition(pfWaveFormBL[0], iPULSEfrom , iPULSEto );
         pPulse[0]->fMax = GetPeak(pfWaveFormBL[0], iPULSEfrom , iPULSEto );
@@ -400,13 +397,14 @@ void rootfyTwoCh(){
         pPulse[0]->fWidth = GetTdcWidth(pfWaveFormBL[0], iPULSEfrom , iPULSEto ,0.10);
         pPulse[0]->fRCharge = GetRCharge(pfWaveFormBL[0], iPULSEfrom , iPULSEto );
         pPulse[0]->fT0_30 = GetFrontThresholdPosition(pfWaveFormBL[0], iPULSEfrom , iPULSEto , 0.3);
-        pPulse[0]->fT0CFD = GetZeroCross(pfCFDWaveForm[0], iPULSEfrom , iPULSEto);
+        pPulse[0]->fT0CFD = GetZeroCross(pfCFDWaveFormBL[0], iPULSEfrom , iPULSEto);
         
         //second
         pPulse[1]->fadqTime=adqTime1;
         fBase = GetBaseLine(pfWaveForm[1], iBLfrom, iBLto);
         pPulse[1]->fBase;
         SubtractBaseLine(pfWaveForm[1], pfWaveFormBL[1], fBase );
+        SubtractBaseLine(pfCFDWaveForm[1], pfCFDWaveFormBL[1], fBase);
 //         InvertWaveForm(pfWaveFormBL[1], pfWaveFormBL[1]);
         pPulse[1]->fMaxBin = GetPeakPosition(pfWaveFormBL[1], iPULSEfrom , iPULSEto );
         pPulse[1]->fMax = GetPeak(pfWaveFormBL[1], iPULSEfrom , iPULSEto );
@@ -414,13 +412,14 @@ void rootfyTwoCh(){
         pPulse[1]->fWidth = GetTdcWidth(pfWaveFormBL[1], iPULSEfrom , iPULSEto ,0.10);
         pPulse[1]->fRCharge = GetRCharge(pfWaveFormBL[1], iPULSEfrom , iPULSEto );
         pPulse[1]->fT0_30 = GetFrontThresholdPosition(pfWaveFormBL[1], iPULSEfrom , iPULSEto , 0.3);  
-        pPulse[1]->fT0CFD = GetZeroCross(pfCFDWaveForm[1], iPULSEfrom , iPULSEto);
+        pPulse[1]->fT0CFD = GetZeroCross(pfCFDWaveFormBL[1], iPULSEfrom , iPULSEto);
         
         //third
         pPulse[2]->fadqTime=adqTime2;
         fBase = GetBaseLine(pfWaveForm[2], iBLfrom, iBLto);
         pPulse[2]->fBase;
         SubtractBaseLine(pfWaveForm[2], pfWaveFormBL[2], fBase );
+        SubtractBaseLine(pfCFDWaveForm[2], pfCFDWaveFormBL[2], fBase );
 //         InvertWaveForm(pfWaveFormBL[2], pfWaveFormBL[2]);
         pPulse[2]->fMaxBin = GetPeakPosition(pfWaveFormBL[2], iPULSEfrom , iPULSEto );
         pPulse[2]->fMax = GetPeak(pfWaveFormBL[2], iPULSEfrom , iPULSEto );
