@@ -101,10 +101,18 @@ void mergedata(){
   TH1F *h_wf3 = (TH1F*)file->Get("h_WF3");
   TH1F *h_wf4 = (TH1F*)file->Get("h_WF4");
   //dist de diferencia de tiempos
-  auto hDiffTime = new TH1F("hDiffTime A3", "T0_30 - T0_CFD; Time (ns); Entries", 60, -20,20);
-  auto hDiffTime2 = new TH1F("hDiffTime2 B3", "T0_30 - T0_CFD; Time (ns); Entries", 60, -20, 20);
-  auto hDiffTime3 = new TH1F("hDiffTime3 C3", "T0_30 - T0_CFD; Time (ns); Entries", 60, -20, 20);
-  //auto hDiffTime4 = new TH1F("hDiffTime4", "Time Difference Distribution; Time (ns); Entries", 150, 0, 600);
+  auto hDiffTime = new TH1F("hDiffTime ", "T0_30 - T0_CFD; Time (ns); Entries", 60, -1.2,0.2);
+  auto hDiffTime2 = new TH1F("hDiffTime2 ", "T0_30 - T0_CFD; Time (ns); Entries", 60, -1.2,0.2);
+  auto hDiffTime3 = new TH1F("hDiffTime3 ", "T0_30 - T0_CFD; Time (ns); Entries", 60, -1.2,0.2);
+
+  auto hDiffTime4 = new TH1F("hDiffTime4", "t(C3)-t(B3), uncorrected; Time (ns); Entries", 25, -6, 6);
+  auto hDiffTime5 = new TH1F("hDiffTime5", "t(B3)-t(A3), uncorrected; Time (ns); Entries", 25, -6, 6);
+
+  //for correction
+  auto h_u0 = new TProfile("h_u[0]","t(C3) - t(B3) vs Width(C3); Width, ns;dT,ns",150.,0.,250,-20.,20.);
+  auto h_u1 = new TProfile("h_u[1]","t(B3) - t(C3) vs Width(B3); Width, ns;dT,ns",150.,0.,250,-20.,20.);
+  auto h_t = new TH1F("t'=t-m*width", "t(C3)-t(B3), corrected; Time (ns); Entries", 25, -6, 6);
+  
 
   //auto c4 = new TCanvas("c4", "Waveforms");
   //c4->Divide(2,2);
@@ -123,10 +131,21 @@ void mergedata(){
     hB2Width->Fill(B2->fWidth);
     hB3Width->Fill(B3->fWidth);
 
-    if (B0->fMax > 0.1 && B1->fMax > 0.1 && B2->fMax > 0.1)  {
-    hDiffTime->Fill(B0->fT0_30 - B0->fT0CFD);  
-    hDiffTime2->Fill(B1->fT0_30 - B1->fT0CFD);
-    hDiffTime3->Fill(B2->fT0_30 - B2->fT0CFD);
+    if (B0->fMax > 0.1 && B1->fMax > 0.1 && B2->fMax > 0.1 
+    && B0->fT0_30*.5>90 && B0->fT0_30*.5<100 && B1->fT0_30*.5>90 && B1->fT0_30*.5<100 && B2->fT0_30*.5>90 && B2->fT0_30*.5<100
+    && B0->fT0CFD*.5>90 && B0->fT0CFD*.5<100 && B1->fT0CFD*.5>90 && B1->fT0CFD*.5<100 && B2->fT0CFD*.5>90 && B2->fT0CFD*.5<100
+    && B0->fWidth > 0 && B1->fWidth > 0 && B2->fWidth > 0 ){
+
+    hDiffTime->Fill(B0->fT0_30*.5 - B0->fT0CFD*.5);  
+    hDiffTime2->Fill(B1->fT0_30*.5 - B1->fT0CFD*.5);
+    hDiffTime3->Fill(B2->fT0_30*.5 - B2->fT0CFD*.5);
+    hDiffTime4->Fill(B2->fT0CFD*.5 - B1->fT0CFD*.5);
+    hDiffTime5->Fill(B1->fT0CFD*.5 - B0->fT0CFD*.5);
+
+    h_u0->Fill(B2->fWidth*.5, B2->fT0CFD*.5 - B1->fT0CFD*.5);
+    h_u1->Fill(B1->fWidth*.5, B1->fT0CFD*.5 - B0->fT0CFD*.5);
+    
+
     }
 
   }  
@@ -192,7 +211,7 @@ void mergedata(){
   h_Per3->Draw();
 
   auto c5 = new TCanvas("c5", "Time Difference Distribution");
-  c5->Divide(2,2);
+  c5->Divide(2,3);
   c5->cd(1);
   hDiffTime->Draw();
   c5->cd(2);
@@ -200,5 +219,51 @@ void mergedata(){
   c5->cd(3);
   hDiffTime3->Draw();
   c5->cd(4);
-  //hDiffTime4->Draw();
+  hDiffTime4->Fit("gaus");
+  hDiffTime4->Draw();
+  c5->cd(5);
+  hDiffTime5->Fit("gaus");
+  hDiffTime5->Draw();
+
+
+ 
+
+  auto c6 = new TCanvas("c6", "DeltaT vs Width");
+  c6->Divide(2,2);
+  c6->cd(1);
+  h_u0->Fit("pol1", "R", "", 15, 50);
+  h_u0->Draw();
+  c6->cd(2);
+  h_u1->Fit("pol1", "R", "", 15, 58);
+  h_u1->Draw();
+  c6->cd(3);
+  hDiffTime4->Fit("gaus");
+  hDiffTime4->Draw();
+
+//now correction
+    TF1 *fitFunc = h_u0->GetFunction("pol1");
+    Double_t slope = fitFunc->GetParameter(1); //pendiente 
+    std::cout << "Pendiente m1=" << slope << std::endl;
+  
+    TF1 *fitFunc2 = h_u1->GetFunction("pol1");
+    Double_t slope2 = fitFunc2->GetParameter(1); //pendiente
+    std::cout << "Pendiente m2=" << slope2 << std::endl;
+
+    for (iEvent=0; iEvent<nEvents; iEvent++) {
+
+      if (B0->fMax > 0.1 && B1->fMax > 0.1 && B2->fMax > 0.1 
+        && B0->fT0_30*.5>90 && B0->fT0_30*.5<100 && B1->fT0_30*.5>90 && B1->fT0_30*.5<100 && B2->fT0_30*.5>90 && B2->fT0_30*.5<100
+        && B0->fT0CFD*.5>90 && B0->fT0CFD*.5<100 && B1->fT0CFD*.5>90 && B1->fT0CFD*.5<100 && B2->fT0CFD*.5>90 && B2->fT0CFD*.5<100
+        && B0->fWidth > 0 && B1->fWidth > 0 && B2->fWidth > 0 ){
+
+          double_t T0B2 = B2->fT0CFD*.5 - B2->fWidth*.5*(0.06);
+          double_t T0B1 = B1->fT0CFD*.5 - B1->fWidth*.5*(0.06);
+          h_t->Fill(T0B2 - T0B1);
+        }
+    }
+  c6->cd(4);
+  h_t->Fit("gaus");
+  h_t->Draw();
+
+
 }
