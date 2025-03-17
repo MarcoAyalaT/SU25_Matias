@@ -111,12 +111,13 @@ void mergedata(){
   //for correction
   auto h_u0 = new TProfile("h_u[0]","t(C3) - t(B3) vs Width(C3); Width, ns;dT,ns",150.,0.,250,-20.,20.);
   auto h_u1 = new TProfile("h_u[1]","t(B3) - t(C3) vs Width(B3); Width, ns;dT,ns",150.,0.,250,-20.,20.);
-  auto h_t = new TH1F("t'=t-m*width", "t(C3)-t(B3), corrected; Time (ns); Entries", 25, -6, 6);
+  auto h_tcorr = new TH1F("t'=t-m*width", "t(C3)-t(B3), corrected; Time (ns); Entries", 150, -7, 7);
   
 
   //auto c4 = new TCanvas("c4", "Waveforms");
   //c4->Divide(2,2);
 
+  double_t T0B2 = 0; double_t T0B1 = 0;
   //llenado de los histogramas de distribuciòn de amplitudes bajo la condiciòn
   for (iEvent=0; iEvent<nEvents; iEvent++) {
     tree->GetEntry(iEvent);
@@ -143,8 +144,12 @@ void mergedata(){
     hDiffTime5->Fill(B1->fT0CFD*.5 - B0->fT0CFD*.5);
 
     h_u0->Fill(B2->fWidth*.5, B2->fT0CFD*.5 - B1->fT0CFD*.5);
-    h_u1->Fill(B1->fWidth*.5, B1->fT0CFD*.5 - B0->fT0CFD*.5);
+    h_u1->Fill(B1->fWidth*.5, B1->fT0CFD*.5 - B2->fT0CFD*.5);
     
+    T0B2 = B2->fT0CFD*.5 - B2->fWidth*.5*(-0.0618286);   //t' slope (corrected)
+    T0B1 = B1->fT0CFD*.5 - B1->fWidth*.5*(-0.0409061);   //t' slope 2(corrected)
+
+    h_tcorr->Fill(T0B2 - T0B1);
 
     }
 
@@ -153,62 +158,62 @@ void mergedata(){
   //display amplitude histograms
 
 
-  auto c3 = new TCanvas("c3", "Amplitude Distribution", 10,10,1400,700);
-  c3->Divide(2,2);
+  // auto c3 = new TCanvas("c3", "Amplitude Distribution", 10,10,1400,700);
+  // c3->Divide(2,2);
 
-  c3->cd(1);
-  gPad->SetLogy();  
-  hB0Max->SetFillStyle(3001);
-  hB0Max->SetFillColor(kRed);
-  hB0Max->Draw();
-  c3->cd(2);
-  gPad->SetLogy();
-  hB1Max->SetFillStyle(3001);
-  hB1Max->SetFillColor(kRed);
-  hB1Max->Draw();
-  c3->cd(3);
-  gPad->SetLogy();
-  hB2Max->SetFillStyle(3001);
-  hB2Max->SetFillColor(kRed);
-  hB2Max->Draw();
-  c3->cd(4);
-  gPad->SetLogy();
-  hB3Max->SetFillStyle(3001);
-  hB3Max->SetFillColor(kRed);
-  hB3Max->Draw();
+  // c3->cd(1);
+  // gPad->SetLogy();  
+  // hB0Max->SetFillStyle(3001);
+  // hB0Max->SetFillColor(kRed);
+  // hB0Max->Draw();
+  // c3->cd(2);
+  // gPad->SetLogy();
+  // hB1Max->SetFillStyle(3001);
+  // hB1Max->SetFillColor(kRed);
+  // hB1Max->Draw();
+  // c3->cd(3);
+  // gPad->SetLogy();
+  // hB2Max->SetFillStyle(3001);
+  // hB2Max->SetFillColor(kRed);
+  // hB2Max->Draw();
+  // c3->cd(4);
+  // gPad->SetLogy();
+  // hB3Max->SetFillStyle(3001);
+  // hB3Max->SetFillColor(kRed);
+  // hB3Max->Draw();
 
-  c3->Draw();
+  // c3->Draw();
 
-  auto c1 = new TCanvas("c1", "Pulse Width Distribution");
-  c1->Divide(2,2);
-  c1->cd(1);
-  gPad->SetLogy();
-  hB0Width->Draw();
-  c1->cd(2);
-  gPad->SetLogy();
-  hB1Width->Draw();
-  c1->cd(3);
-  gPad->SetLogy();
-  hB2Width->Draw();
-  c1->cd(4);
-  gPad->SetLogy();
-  hB3Width->Draw();
+  // auto c1 = new TCanvas("c1", "Pulse Width Distribution");
+  // c1->Divide(2,2);
+  // c1->cd(1);
+  // gPad->SetLogy();
+  // hB0Width->Draw();
+  // c1->cd(2);
+  // gPad->SetLogy();
+  // hB1Width->Draw();
+  // c1->cd(3);
+  // gPad->SetLogy();
+  // hB2Width->Draw();
+  // c1->cd(4);
+  // gPad->SetLogy();
+  // hB3Width->Draw();
 
 
-  auto c2 = new TCanvas("c2", "Persistencias");
-  c2->Divide(2,2);
-  c2->cd(1);
-  gPad -> SetLogz();
-  h_Per0->Draw();
-  c2->cd(2);
-  gPad -> SetLogz();
-  h_Per1->Draw();
-  c2->cd(3);
-  gPad -> SetLogz();
-  h_Per2->Draw();
-  c2->cd(4);
-  gPad -> SetLogz();
-  h_Per3->Draw();
+  // auto c2 = new TCanvas("c2", "Persistencias");
+  // c2->Divide(2,2);
+  // c2->cd(1);
+  // gPad -> SetLogz();
+  // h_Per0->Draw();
+  // c2->cd(2);
+  // gPad -> SetLogz();
+  // h_Per1->Draw();
+  // c2->cd(3);
+  // gPad -> SetLogz();
+  // h_Per2->Draw();
+  // c2->cd(4);
+  // gPad -> SetLogz();
+  // h_Per3->Draw();
 
   auto c5 = new TCanvas("c5", "Time Difference Distribution");
   c5->Divide(2,3);
@@ -243,27 +248,19 @@ void mergedata(){
 //now correction
     TF1 *fitFunc = h_u0->GetFunction("pol1");
     Double_t slope = fitFunc->GetParameter(1); //pendiente 
-    std::cout << "Pendiente m1=" << slope << std::endl;
   
     TF1 *fitFunc2 = h_u1->GetFunction("pol1");
     Double_t slope2 = fitFunc2->GetParameter(1); //pendiente
-    std::cout << "Pendiente m2=" << slope2 << std::endl;
+ 
+    std::cout << "Pendiente C=" << slope << std::endl;
+    std::cout << "Pendiente B=" << slope2 << std::endl;
 
-    for (iEvent=0; iEvent<nEvents; iEvent++) {
-
-      if (B0->fMax > 0.1 && B1->fMax > 0.1 && B2->fMax > 0.1 
-        && B0->fT0_30*.5>90 && B0->fT0_30*.5<100 && B1->fT0_30*.5>90 && B1->fT0_30*.5<100 && B2->fT0_30*.5>90 && B2->fT0_30*.5<100
-        && B0->fT0CFD*.5>90 && B0->fT0CFD*.5<100 && B1->fT0CFD*.5>90 && B1->fT0CFD*.5<100 && B2->fT0CFD*.5>90 && B2->fT0CFD*.5<100
-        && B0->fWidth > 0 && B1->fWidth > 0 && B2->fWidth > 0 ){
-
-          double_t T0B2 = B2->fT0CFD*.5 - B2->fWidth*.5*(0.06);
-          double_t T0B1 = B1->fT0CFD*.5 - B1->fWidth*.5*(0.06);
-          h_t->Fill(T0B2 - T0B1);
-        }
-    }
+    std::cout << " t' B1 =" << T0B1 << std::endl;
+    std::cout << " t' B2 =" << T0B2 << std::endl;
+    
   c6->cd(4);
-  h_t->Fit("gaus");
-  h_t->Draw();
+  h_tcorr->Fit("gaus");
+  h_tcorr->Draw();
 
 
 }
